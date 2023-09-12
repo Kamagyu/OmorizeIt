@@ -5,6 +5,23 @@ import config from './config.json' assert { type: "json"};
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
+let common_options = [
+	{
+		type: OptionType.String,
+		name: "input",
+		description: "Text input",
+		required: true,
+	},
+	{
+		type: OptionType.Integer,
+		name: "size",
+		description: "Size of the resulting gif",
+		required: false,
+		min_value: 64,
+		max_value: 2048
+	}
+]
+
 let commands = [
 	{
 		name: 'omorize',
@@ -15,12 +32,8 @@ let commands = [
 				name: "random",
 				description: "Put text on a random subcommand",
 				options: [
-					{
-						type: OptionType.String,
-						name: "input",
-						description: "Text input",
-						required: true,
-					},
+					// spread syntax
+					...common_options
 				]
 			},
 			{
@@ -28,12 +41,6 @@ let commands = [
 				name: "choose",
 				description: "Choose a character and emotion",
 				options: [
-					{
-						type: OptionType.String,
-						name: "input",
-						description: "Text input",
-						required: true,
-					},
 					{
 						type: OptionType.String,
 						name: "dimension",
@@ -56,7 +63,8 @@ let commands = [
 							{ name: "kel", value: "kel" },
 							{ name: "omori-sunny", value: "mc" }
 						]
-					}
+					},
+					...common_options
 				]
 			}
 		]
@@ -87,39 +95,39 @@ client.on('ready', async () => {
 	client.rest.put(Routes.applicationCommands(config.app_id), { body: commands })
 });
 
-let emotion = "";
-let component = {};
-let filename;
-
-
-
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isChatInputCommand()) return;
 
 	if (interaction.commandName === 'omorize') {
 
 		let subcommand = interaction.options.getSubcommand(true);
+		let input = interaction.options.getString("input", true);
+
+		// ?? => null coalescing operator
+		let size = interaction.options.getInteger("size") ?? 498;
+		let fontsize = Math.ceil((size/498)*48);
 
 		if (subcommand == "random") {
 			//Randomize emotion
-
-			emotion = emotions[Math.floor(Math.random() * emotions.length)];
+			let emotion = emotions[Math.floor(Math.random() * emotions.length)];
 			console.log("Emotion randomized");
 
-			filename = await create_gif(interaction.options.getString("input"), emotion, 48, 498);
-			await interaction.reply({
+			await interaction.deferReply();
+
+			let filename = await create_gif(input, emotion, fontsize, size);
+			await interaction.editReply({
 				files: [filename]
 			});
 		} else if (subcommand == "choose") {
-			let dimension = interaction.options.getString("dimension");
-			let character = interaction.options.getString("character");
+			let dimension = interaction.options.getString("dimension", true);
+			let character = interaction.options.getString("character", true);
 
 			//Choose emotion
 			console.log("Emotion is gonna be chosen");
 
 			let filenames = readdirSync(`./emotions/${dimension}/${character}`);
 
-			component = {
+			let component = {
 				type: 3,
 				custom_id: "emotion_select",
 				options: filenames.map(file => ({
@@ -141,13 +149,11 @@ client.on('interactionCreate', async interaction => {
 				]
 			})
 
-
 			try {
 				const choice = await response.awaitMessageComponent({ filter: i => i.user.id == interaction.user.id, time: 60000 });
 
-				emotion = `./emotions/${dimension}/${character}/${choice.values[0]}.gif`;
-
-				filename = await create_gif(interaction.options.getString("input"), emotion, 48, 498);
+				let emotion = `./emotions/${dimension}/${character}/${choice.values[0]}.gif`;
+				let filename = await create_gif(input, emotion, fontsize, size);
 
 				await interaction.editReply({
 					files: [filename],
@@ -156,7 +162,6 @@ client.on('interactionCreate', async interaction => {
 				})
 
 				console.log(choice.values[0]);
-
 			} catch (e) {
 				console.log(e);
 				await interaction.editReply({ content: "bruh", components: [] })
@@ -164,11 +169,7 @@ client.on('interactionCreate', async interaction => {
 
 			console.log(filenames);
 		}
-		console.log(emotion);
-
 	}
 });
-
-
 
 client.login(config.token);  

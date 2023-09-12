@@ -33,17 +33,14 @@ function break_text(text, font_size, max_width) {
     let numlines = 0;
 
     let width = 0;
-    let last_width = 0;
     let last_line = 0;
     let last_space = 0;
     for (let i = 0; i < text.length; i++) {
         let ch = text[i];
         if (ch == ' ') {
-            last_width = width;
             last_space = i;
             width += space_size;
         } else if (ch == '\n' || ch == '|') {
-            last_width = width;
             last_space = i;
         } else {
             width += character_size;
@@ -75,7 +72,7 @@ function break_text(text, font_size, max_width) {
  * @param {string} emotion Path to input gif
  * @param {number} fontsize Font size
  * @param {number} outputsize Square size of output gif
- * @returns {Promise<String>} The output file
+ * @returns {Promise<string>} The output file
  */
 export let create_gif = (text, emotion, fontsize, outputsize) => new Promise((resolve, reject) => {
     let output = break_text(text, fontsize, outputsize)
