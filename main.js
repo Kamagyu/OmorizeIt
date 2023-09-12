@@ -80,6 +80,8 @@ export let create_gif = (text, emotion, fontsize, outputsize) => new Promise((re
     let halfpoint = output[1];
     text = sanitize(text);
 
+	let border_width = Math.ceil(fontsize/20);
+
     let split = text.split('\n');
     let drawtexts = split.map((s, i) => {
         let vertical_pos;
@@ -89,7 +91,7 @@ export let create_gif = (text, emotion, fontsize, outputsize) => new Promise((re
             vertical_pos = `h-${(split.length-i)*fontsize}`;//(text_h*${(split.length-i)*1.1})`;
         }
 
-        return `drawtext=fontfile=font.otf: text='${s}': x=(w-text_w)/2:y=${vertical_pos}: fontsize=${fontsize}: fontcolor=white: bordercolor=black: borderw=3`;
+        return `drawtext=fontfile=font.otf: text='${s}': x=(w-text_w)/2:y=${vertical_pos}: fontsize=${fontsize}: fontcolor=white: bordercolor=black: borderw=${border_width}`;
     }).join(", ");
 
     let outputpath = 'output/output.gif';
