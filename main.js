@@ -33,17 +33,14 @@ function break_text(text, font_size, max_width) {
     let numlines = 0;
 
     let width = 0;
-    let last_width = 0;
     let last_line = 0;
     let last_space = 0;
     for (let i = 0; i < text.length; i++) {
         let ch = text[i];
         if (ch == ' ') {
-            last_width = width;
             last_space = i;
             width += space_size;
         } else if (ch == '\n' || ch == '|') {
-            last_width = width;
             last_space = i;
         } else {
             width += character_size;
@@ -75,13 +72,15 @@ function break_text(text, font_size, max_width) {
  * @param {string} emotion Path to input gif
  * @param {number} fontsize Font size
  * @param {number} outputsize Square size of output gif
- * @returns {Promise<String>} The output file
+ * @returns {Promise<string>} The output file
  */
 export let create_gif = (text, emotion, fontsize, outputsize) => new Promise((resolve, reject) => {
     let output = break_text(text, fontsize, outputsize)
     text = output[0];
     let halfpoint = output[1];
     text = sanitize(text);
+
+	let border_width = Math.ceil(fontsize/20);
 
     let split = text.split('\n');
     let drawtexts = split.map((s, i) => {
@@ -92,7 +91,7 @@ export let create_gif = (text, emotion, fontsize, outputsize) => new Promise((re
             vertical_pos = `h-${(split.length-i)*fontsize}`;//(text_h*${(split.length-i)*1.1})`;
         }
 
-        return `drawtext=fontfile=font.otf: text='${s}': x=(w-text_w)/2:y=${vertical_pos}: fontsize=${fontsize}: fontcolor=white: bordercolor=black: borderw=3`;
+        return `drawtext=fontfile=font.otf: text='${s}': x=(w-text_w)/2:y=${vertical_pos}: fontsize=${fontsize}: fontcolor=white: bordercolor=black: borderw=${border_width}`;
     }).join(", ");
 
     let outputpath = 'output/output.gif';
