@@ -66,8 +66,13 @@ let commands = [
 					},
 					...common_options
 				]
-			}
+			},
 		]
+	},
+	{
+		type: OptionType.Subcommand,
+		name: "undo",
+		description: "Removes the last sent message"
 	}
 ];
 
@@ -80,6 +85,11 @@ function readEmotions(path) {
 	} else if (f.isFile()) emotions.push(path);
 }
 readEmotions("./emotions");
+
+/** @type {Map<string, Interaction>}
+ * Maps from a user id to their interaction
+*/
+let last_message = new Map();
 
 client.on('ready', async () => {
 	console.log(`Logged in as ${client.user.tag}!`);
@@ -118,6 +128,8 @@ client.on('interactionCreate', async interaction => {
 			await interaction.editReply({
 				files: [filename]
 			});
+
+			last_message.set(interaction.user.id, interaction);
 		} else if (subcommand == "choose") {
 			let dimension = interaction.options.getString("dimension", true);
 			let character = interaction.options.getString("character", true);
@@ -161,6 +173,8 @@ client.on('interactionCreate', async interaction => {
 					components: []
 				})
 
+				last_message.set(interaction.user.id, interaction);
+
 				console.log(choice.values[0]);
 			} catch (e) {
 				console.log(e);
@@ -168,6 +182,17 @@ client.on('interactionCreate', async interaction => {
 			};
 
 			console.log(filenames);
+		} 
+	} else if (interaction.commandName == "undo") {
+		let last = last_message.get(interaction.user.id);
+		if (last != undefined) {
+			if (last.replied) await last.deleteReply();
+
+			last_message.delete(interaction.user.id);
+			interaction.reply({
+				content: "Removed.",
+				ephemeral: true
+			})
 		}
 	}
 });
