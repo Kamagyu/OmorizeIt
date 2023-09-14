@@ -94,7 +94,7 @@ export let create_gif = (text, emotion, fontsize, outputsize) => new Promise((re
         return `drawtext=fontfile=font.otf: text='${s}': x=(w-text_w)/2:y=${vertical_pos}: fontsize=${fontsize}: fontcolor=white: bordercolor=black: borderw=${border_width}`;
     }).join(", ");
 
-    let outputpath = 'output/output.gif';
+    let outputpath = 'output.gif';
 
     let log = "";
     let ffmpeg = spawn(
