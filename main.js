@@ -69,18 +69,19 @@ function break_text(text, font_size, max_width) {
 
 /**
  * @param {string} text Input text
- * @param {string} emotion Path to input gif
+ * @param {string} inputpath Path to input gif
  * @param {number} fontsize Font size
  * @param {number} outputsize Square size of output gif
  * @returns {Promise<string>} The output file
  */
-export let create_gif = (text, emotion, fontsize, outputsize) => new Promise((resolve, reject) => {
+export let create_gif = (text, inputpath, outputsize) => new Promise((resolve, reject) => {
+	let fontsize = Math.ceil((outputsize/498)*48);
+	let border_width = Math.ceil(fontsize/20);
+
     let output = break_text(text, fontsize, outputsize)
     text = output[0];
     let halfpoint = output[1];
     text = sanitize(text);
-
-	let border_width = Math.ceil(fontsize/20);
 
     let split = text.split('\n');
     let drawtexts = split.map((s, i) => {
@@ -101,7 +102,7 @@ export let create_gif = (text, emotion, fontsize, outputsize) => new Promise((re
         'ffmpeg', [
             '-y',
             '-i',
-            emotion, 
+            inputpath, 
             '-vf',
             `scale=${outputsize}:${outputsize}, ${drawtexts}`, 
             outputpath,

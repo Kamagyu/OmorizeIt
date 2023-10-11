@@ -70,7 +70,11 @@ let commands = [
 		]
 	},
 	{
-		type: OptionType.Subcommand,
+		name: 'gabrielize',
+		description: "MAY YOUR Ls BE MANY AND YOUR BITCHES FEW",
+		options: [ ...common_options ]
+	},
+	{
 		name: "undo",
 		description: "Removes the last sent message"
 	}
@@ -114,8 +118,7 @@ client.on('interactionCreate', async interaction => {
 		let input = interaction.options.getString("input", true);
 
 		// ?? => null coalescing operator
-		let size = interaction.options.getInteger("size") ?? 498;
-		let fontsize = Math.ceil((size/498)*48);
+		let size = interaction.options.getInteger("size") ?? 400;
 
 		if (subcommand == "random") {
 			//Randomize emotion
@@ -124,7 +127,7 @@ client.on('interactionCreate', async interaction => {
 
 			await interaction.deferReply();
 
-			let filename = await create_gif(input, emotion, fontsize, size);
+			let filename = await create_gif(input, emotion, size);
 			await interaction.editReply({
 				files: [filename]
 			});
@@ -165,7 +168,7 @@ client.on('interactionCreate', async interaction => {
 				const choice = await response.awaitMessageComponent({ filter: i => i.user.id == interaction.user.id, time: 60000 });
 
 				let emotion = `./emotions/${dimension}/${character}/${choice.values[0]}.gif`;
-				let filename = await create_gif(input, emotion, fontsize, size);
+				let filename = await create_gif(input, emotion, size);
 
 				await interaction.editReply({
 					files: [filename],
@@ -183,7 +186,21 @@ client.on('interactionCreate', async interaction => {
 
 			console.log(filenames);
 		} 
-	} else if (interaction.commandName == "undo") {
+	} else if (interaction.commandName == 'gabrielize') {
+		let input = interaction.options.getString("input", true);
+		let size = interaction.options.getInteger("size") ?? 400;
+
+		await interaction.deferReply();
+
+		let filename = await create_gif(input, "emotions/gabriel-ultrakill.gif", size);
+		console.log(filename);
+		await interaction.editReply({
+			files: [filename]
+		});
+		console.log("responded");
+
+		last_message.set(interaction.user.id, interaction);
+	} else if (interaction.commandName == 'undo') {
 		let last = last_message.get(interaction.user.id);
 		if (last != undefined) {
 			if (last.replied) await last.deleteReply();
